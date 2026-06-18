@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User as userModels;
-use App\Models\Students as students;
-use App\Models\Teachers as teachers;
+use App\Models\Student as students;
+use App\Models\Teacher as teachers;
 use App\UserGender;
 use App\UserRole;
 use Illuminate\Support\Facades\Hash;
@@ -26,8 +26,9 @@ class AuthController extends Controller
 
         if ($validasi->fails()) {
             return response()->json([
-                'status' => 'Error',
-                'message' => [
+                'success' => false,
+                'message' => 'Validasi Error',
+                'error' => [
                     $validasi->errors()
                 ]
             ], 422);
@@ -44,7 +45,7 @@ class AuthController extends Controller
             ]);
 
             return response()->json([
-                'status' => 'Success',
+                'success' => true,
                 'message' => 'User baru berhasil dibuat',
                 'data' => [
                     'name' => $request->name,
@@ -61,7 +62,7 @@ class AuthController extends Controller
             ]);
 
             return response()->json([
-                'status' => 'Success',
+                'success' => true,
                 'message' => 'User baru berhasil dibuat',
                 'data' => [
                     'name' => $request->name,
@@ -70,11 +71,6 @@ class AuthController extends Controller
                     'role' => $request->role
                 ]
             ], 201);
-        } else {
-            return response()->json([
-                'status' => 'Error',
-                'message' => 'Role tidak valid',
-            ], 400);
         }
     }
 
@@ -86,12 +82,14 @@ class AuthController extends Controller
 
         if ($validate->fails()) {
             return response()->json([
-                'status' => 'Error',
-                'message' => [
+                'success' => false,
+                'message' => 'Validasi Error',
+                'error' => [
                     $validate->errors()
                 ]
             ], 422);
         }
+        ;
 
         $userFound = students::where('nisn', $request->nisNip)->first();
 
@@ -99,13 +97,13 @@ class AuthController extends Controller
             $userFound = teachers::where('nip', $request->nisNip)->first();
             if (!$userFound) {
                 return response()->json([
-                    'status' => 'Error',
-                    'message' => 'User Not Found'
-                ]);
+                    'success' => false,
+                    'message' => 'User tidak ditemukan'
+                ], 404);
             } else {
                 return response()->json([
-                    'status' => 'Success',
-                    'message' => 'User Found',
+                    'success' => true,
+                    'message' => 'User ditemukan',
                     'data' => [
                         'name' => $userFound->name,
                         'nisn' => $userFound->nip,
@@ -119,8 +117,8 @@ class AuthController extends Controller
         ;
 
         return response()->json([
-            'status' => 'Success',
-            'message' => 'User Found',
+            'success' => true,
+            'message' => 'User ditemukan',
             'data' => [
                 'name' => $userFound->name,
                 'nisn' => $userFound->nisn,
@@ -130,7 +128,7 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function userActivate(Request $request)
+    public function activateUser(Request $request)
     {
         $validasi = Validator::make($request->all(), [
             'nisNip' => 'required|min:10|max:18',
@@ -142,27 +140,28 @@ class AuthController extends Controller
 
         if ($validasi->fails()) {
             return response()->json([
-                'status' => 'Error',
+                'success' => false,
                 'message' => [
                     $validasi->errors()
                 ]
             ], 422);
-        };
+        }
+        ;
 
         $user = students::where('nisn', $request->nisNip)->first();
 
         if (!$user) {
             $user = teachers::where('nip', $request->nisNip)->first();
-            
+
             if (!$user) {
                 return response()->json([
-                    'status' => 'Error',
+                    'success' => false,
                     'message' => 'User Not Found'
                 ]);
             } else {
-                if($user->is_active == 1 || $user->is_active == true){
+                if ($user->is_active == 1 || $user->is_active == true) {
                     return response()->json([
-                        'status' => 'Error',
+                        'success' => false,
                         'message' => 'User Sudah Terdaftar'
                     ], 409);
                 }
@@ -181,7 +180,7 @@ class AuthController extends Controller
                 $userNewUpdate = teachers::where('nip', $request->nisNip)->first();
 
                 return response()->json([
-                    'status' => 'Success',
+                    'success' => true,
                     'message' => 'Akun berhasil diaktivasi',
                     'data' => [
                         'name' => $request->name,
@@ -191,12 +190,14 @@ class AuthController extends Controller
                         'is_active' => $userNewUpdate->is_active
                     ]
                 ], 201);
-            };
-        };
+            }
+            ;
+        }
+        ;
 
-        if($user->is_active === 1 || $user->is_active === true){
+        if ($user->is_active === 1 || $user->is_active === true) {
             return response()->json([
-                'status' => 'Error',
+                'success' => false,
                 'message' => 'User Sudah Terdaftar'
             ], 409);
         }
@@ -215,7 +216,7 @@ class AuthController extends Controller
         $userNewUpdate = students::where('nisn', $request->nisNip)->first();
 
         return response()->json([
-            'status' => 'Success',
+            'success' => true,
             'message' => 'Akun berhasil diaktivasi',
             'data' => [
                 'name' => $request->name,
@@ -236,59 +237,72 @@ class AuthController extends Controller
 
         if ($validasi->fails()) {
             return response()->json([
-                'status' => 'Error',
+                'success' => false,
                 'message' => [
                     $validasi->errors()
                 ]
             ], 422);
-        };
+        }
+        ;
 
         $userLogin = userModels::where('email', $request->email)->first();
-        
-        if(!$userLogin || !Hash::check($request->password, $userLogin->password)) {
+
+        if (!$userLogin || !Hash::check($request->password, $userLogin->password)) {
             return response()->json([
-                'status' => 'Error',
+                'success' => false,
                 'message' => 'Email atau Password salah'
             ], 404);
         }
 
         $token = $userLogin->createToken('access-token')->plainTextToken;
-        $userData = teachers::where('user_id', $userLogin->id)->first();
-        
-        if(!$userData){
-            $userData = students::where('user_id', $userLogin->id)->first();
-            
-            return response()->json([
-                'status' => 'Success',
-                'message' => 'User berhasil login',
-                'data' => [
-                    'name' => $userData->name,
-                    'email' => $userLogin->email,
-                    'role' => $userLogin->role,
-                    'nisn' => $userData->nisn,
-                    'birth_date' => $userData->birth_date,
-                    'gender' => $userData->gender,
-                    'class' => $userData->class,
-                    'address' => $userData->address,
-                    'token' => $token
-                ]
-            ], 200);
+
+        if ($userLogin->role == 'siswa') {
+            $userData = $userLogin->student;
+        } else {
+            $userData = $userLogin->teacher;
         }
 
+        $profile = [];
+
+        if ($userLogin->role == 'siswa') {
+            $profile['nisn'] = $userData->nisn;
+        } else {
+            $profile['nip'] = $userData->nip;
+        }
+        ;
+
+
         return response()->json([
-            'status' => 'Success',
-            'message' => 'User berhasil login',
+            'success' => true,
+            'message' => 'Berhasil Login',
             'data' => [
-                'name' => $userData->name,
+                'id' => $userLogin->id,
                 'email' => $userLogin->email,
                 'role' => $userLogin->role,
-                'nip' => $userData->nip,
-                'birth_date' => $userData->birth_date,
-                'gender' => $userData->gender,
-                'position' => $userData->position,
-                'token' => $token
-            ]
-        ], 200);
+                'profile' => [
+                    $profile
+                ]
+            ],
+            'token' => $token
+        ]);
+    }
+
+    public function me(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role == 'siswa') {
+            $user->load('student');
+        } else {
+            $user->load('teacher');
+        }
+        ;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil mendapatkan data user',
+            'data' => $user,
+        ]);
     }
 
     public function logout(Request $request)
@@ -296,7 +310,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'status' => 'Success',
+            'success' => true,
             'message' => 'Berhasil logout'
         ], 201);
     }

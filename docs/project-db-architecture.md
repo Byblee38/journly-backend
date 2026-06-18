@@ -1,399 +1,227 @@
-# Authentication & Account Activation Architecture
+# Database Architecture - Journly
 
 ## Overview
 
-Dokumen ini menjelaskan arsitektur autentikasi dan aktivasi akun yang digunakan pada Sistem Informasi Sekolah berbasis Laravel dan MySQL.
+Journly merupakan aplikasi monitoring PKL yang memiliki tiga role utama:
 
-Tujuan utama desain ini adalah:
+* Admin
+* Mentor
+* Siswa
 
-* Mendukung banyak role (Admin, Guru, Siswa)
-* Memisahkan data autentikasi dan data profil
-* Mendukung proses aktivasi akun mandiri oleh siswa
-* Memudahkan pengembangan fitur akademik di masa depan
-* Menghindari duplikasi data dan perpindahan data antar tabel
+Alur utama sistem:
 
----
-
-# Architecture
-
-## Authentication Layer
-
-Seluruh autentikasi disimpan pada tabel `users`.
-
-Tabel ini hanya bertanggung jawab terhadap:
-
-* Login
-* Password
-* Role
-* Status akun
-
-Tabel ini tidak menyimpan data akademik maupun data kepegawaian.
+```text
+Siswa membuat laporan
+        ↓
+Status = Pending
+        ↓
+Mentor melakukan review
+        ↓
+Approve / Reject
+```
 
 ---
 
-## Profile Layer
+# Entity Relationship
 
-Data spesifik setiap role dipisahkan ke tabel masing-masing.
-
-### Student Profile
-
-Menyimpan seluruh informasi siswa.
-
-Contoh:
-
-* NIS
-* NISN
-* Nama
-* Tanggal Lahir
-* Jenis Kelamin
-* Kelas
-* Alamat
-
-### Teacher Profile
-
-Menyimpan seluruh informasi guru.
-
-Contoh:
-
-* NIP
-* Nama
-* Tanggal Lahir
-* Jabatan
-* Status Kepegawaian
+```text
+User
+├── Teacher
+│     └── Student
+│             └── Report
+│                     └── ReportActivity
+```
 
 ---
 
-# Database Design
+# Tables
 
 ## users
 
-Digunakan untuk autentikasi.
+Digunakan untuk autentikasi dan otorisasi pengguna.
 
-| Column            | Type               | Description             |
-| ----------------- | ------------------ | ----------------------- |
-| id                | bigint             | Primary Key             |
-| email             | varchar            | Email Login             |
-| password          | varchar            | Hashed Password         |
-| role              | enum               | admin, teacher, student |
-| is_active         | boolean            | Status akun             |
-| email_verified_at | timestamp nullable | Verifikasi email        |
-| created_at        | timestamp          | Created timestamp       |
-| updated_at        | timestamp          | Updated timestamp       |
+| Column     | Type      | Description                 |
+| ---------- | --------- | --------------------------- |
+| id         | bigint    | Primary Key                 |
+| email      | string    | Email pengguna              |
+| password   | string    | Password yang telah di-hash |
+| role       | enum      | admin, mentor, siswa        |
+| created_at | timestamp | Timestamp Laravel           |
+| updated_at | timestamp | Timestamp Laravel           |
 
----
+### Relations
 
-## students
-
-Digunakan untuk menyimpan data siswa.
-
-| Column     | Type            | Description                |
-| ---------- | --------------- | -------------------------- |
-| id         | bigint          | Primary Key                |
-| user_id    | bigint nullable | FK ke users                |
-| nis        | varchar unique  | Nomor Induk Siswa          |
-| nisn       | varchar unique  | Nomor Induk Siswa Nasional |
-| name       | varchar         | Nama lengkap               |
-| birth_date | date            | Tanggal lahir              |
-| gender     | enum            | L/P                        |
-| address    | text            | Alamat                     |
-| class_id   | bigint nullable | Relasi kelas               |
-| created_at | timestamp       | Created timestamp          |
-| updated_at | timestamp       | Updated timestamp          |
+```php
+User hasOne Student
+User hasOne Teacher
+```
 
 ---
 
 ## teachers
 
-Digunakan untuk menyimpan data guru.
+Menyimpan data profil guru, mentor, dan admin.
 
-| Column     | Type            | Description         |
-| ---------- | --------------- | ------------------- |
-| id         | bigint          | Primary Key         |
-| user_id    | bigint nullable | FK ke users         |
-| nip        | varchar unique  | Nomor Induk Pegawai |
-| name       | varchar         | Nama lengkap        |
-| birth_date | date            | Tanggal lahir       |
-| position   | varchar         | Jabatan             |
-| created_at | timestamp       | Created timestamp   |
-| updated_at | timestamp       | Updated timestamp   |
+| Column     | Type            | Description          |
+| ---------- | --------------- | -------------------- |
+| id         | bigint          | Primary Key          |
+| user_id    | bigint nullable | Relasi ke users      |
+| nip        | string unique   | Nomor Induk Pegawai  |
+| name       | string          | Nama guru            |
+| gender     | enum            | Jenis kelamin        |
+| is_active  | boolean         | Status aktivasi akun |
+| created_at | timestamp       | Timestamp Laravel    |
+| updated_at | timestamp       | Timestamp Laravel    |
 
----
-
-# Relationship Diagram
-
-users
-
-1 ---- 1 students
-
-users
-
-1 ---- 1 teachers
-
-Kondisi:
-
-* Guru memiliki satu akun user
-* Siswa memiliki satu akun user
-* User hanya boleh terhubung ke satu profil
-
----
-
-# Account Lifecycle
-
-## Student Registration Flow
-
-Akun siswa menggunakan sistem Pre-registration.
-
-Admin membuat data siswa terlebih dahulu.
-
-Contoh:
-
-students
-
-* nisn
-* nis
-* name
-* birth_date
-
-Namun:
-
-user_id = NULL
-
-Karena siswa belum melakukan aktivasi akun.
-
----
-
-## Student Activation Flow
-
-### Step 1 - Verification
-
-Siswa membuka halaman aktivasi.
-
-Input:
-
-* NISN
-* Tanggal Lahir
-
-Backend melakukan validasi:
-
-```sql
-SELECT *
-FROM students
-WHERE nisn = ?
-AND birth_date = ?;
-```
-
----
-
-### Step 2 - Activation Eligibility
-
-Pastikan data ditemukan.
-
-Pastikan akun belum aktif.
-
-Kondisi:
-
-```text
-user_id IS NULL
-```
-
-Jika `user_id` sudah terisi:
-
-```text
-Akun telah diaktivasi sebelumnya.
-```
-
----
-
-### Step 3 - Identity Confirmation
-
-Backend mengirimkan data dasar:
-
-```json
-{
-    "name": "Nama Siswa"
-}
-```
-
-Frontend meminta konfirmasi kepada siswa.
-
----
-
-### Step 4 - Credential Creation
-
-Siswa mengisi:
-
-* Email
-* Password
-* Password Confirmation
-
-Validasi:
-
-* Email unique
-* Password minimum sesuai kebijakan sistem
-
----
-
-### Step 5 - Create User
-
-Backend membuat akun baru pada tabel users.
-
-Contoh:
+### Relations
 
 ```php
-$user = User::create([
-    'email' => $request->email,
-    'password' => Hash::make($request->password),
-    'role' => 'student',
-    'is_active' => true
-]);
+Teacher belongsTo User
+Teacher hasMany Student
 ```
 
 ---
 
-### Step 6 - Link User
+## students
 
-Hubungkan akun dengan profil siswa.
+Menyimpan data profil siswa PKL.
+
+| Column     | Type            | Description          |
+| ---------- | --------------- | -------------------- |
+| id         | bigint          | Primary Key          |
+| user_id    | bigint nullable | Relasi ke users      |
+| mentor_id  | bigint          | Relasi ke teachers   |
+| nisn       | string unique   | Nomor Induk Siswa    |
+| name       | string          | Nama siswa           |
+| gender     | enum            | Jenis kelamin        |
+| is_active  | boolean         | Status aktivasi akun |
+| created_at | timestamp       | Timestamp Laravel    |
+| updated_at | timestamp       | Timestamp Laravel    |
+
+### Relations
 
 ```php
-$student->update([
-    'user_id' => $user->id
-]);
-```
-
-Hasil akhir:
-
-```text
-users
-└── id = 10
-
-students
-└── user_id = 10
-```
-
-Aktivasi selesai.
-
----
-
-# Authentication Flow
-
-## Login
-
-Semua role menggunakan endpoint login yang sama.
-
-Input:
-
-```json
-{
-    "email": "user@example.com",
-    "password": "password"
-}
-```
-
-Laravel melakukan autentikasi menggunakan tabel users.
-
----
-
-## Authorization
-
-Hak akses ditentukan menggunakan kolom role.
-
-Contoh:
-
-```text
-admin
-teacher
-student
+Student belongsTo User
+Student belongsTo Teacher
+Student hasMany Report
 ```
 
 ---
 
-# Recommended Middleware
+## reports
 
-Contoh middleware:
+Menyimpan laporan harian siswa.
+
+| Column      | Type               | Description                 |
+| ----------- | ------------------ | --------------------------- |
+| id          | bigint             | Primary Key                 |
+| student_id  | bigint             | Relasi ke students          |
+| report_date | date               | Tanggal laporan             |
+| status      | enum               | pending, approved, rejected |
+| mentor_note | text nullable      | Catatan mentor              |
+| approved_at | timestamp nullable | Waktu approve               |
+| created_at  | timestamp          | Timestamp Laravel           |
+| updated_at  | timestamp          | Timestamp Laravel           |
+
+### Relations
 
 ```php
-role:admin
-role:teacher
-role:student
+Report belongsTo Student
+Report hasMany ReportActivity
 ```
 
-Implementasi dapat menggunakan:
+### Constraints
 
-* Custom Middleware
-* Laravel Gates
-* Laravel Policies
-* Spatie Laravel Permission
+Setiap siswa hanya boleh memiliki satu laporan per hari.
 
-Untuk proyek jangka panjang, Spatie Permission direkomendasikan.
+```php
+unique(student_id, report_date)
+```
 
 ---
 
-# Future Expansion
+## report_activities
 
-Struktur ini dirancang untuk mendukung fitur berikut tanpa perubahan besar:
+Menyimpan daftar aktivitas dalam satu laporan.
 
-## Academic
+| Column      | Type      | Description       |
+| ----------- | --------- | ----------------- |
+| id          | bigint    | Primary Key       |
+| report_id   | bigint    | Relasi ke reports |
+| title       | string    | Nama aktivitas    |
+| description | text      | Detail aktivitas  |
+| created_at  | timestamp | Timestamp Laravel |
+| updated_at  | timestamp | Timestamp Laravel |
 
-* Classes
-* Subjects
-* Schedules
-* Attendance
-* Grades
-* Report Cards
+### Relations
 
-## Administration
+```php
+ReportActivity belongsTo Report
+```
 
-* Announcements
-* Academic Calendar
-* Permissions
-* User Management
+---
 
-## Parent Portal
+# Report Flow
 
-Dapat ditambahkan tabel:
+## Create Report
 
 ```text
-parents
+Student
+    ↓
+Create Report
+    ↓
+Status = Pending
 ```
 
-yang nantinya dapat dihubungkan ke siswa.
+## Approve Report
+
+```text
+Mentor
+    ↓
+Review Report
+    ↓
+Approve
+    ↓
+Status = Approved
+```
+
+## Reject Report
+
+```text
+Mentor
+    ↓
+Review Report
+    ↓
+Reject
+    ↓
+Status = Rejected
+    ↓
+Mentor memberikan catatan
+```
 
 ---
 
-# Best Practices
+# Business Rules
 
-## Do
+### Student
 
-* Simpan password menggunakan Hash::make()
-* Gunakan Foreign Key
-* Gunakan Soft Delete bila diperlukan
-* Pisahkan data autentikasi dan data profil
-* Gunakan Form Request Validation
-* Gunakan Service Layer untuk logic aktivasi
+* Hanya dapat melihat laporan miliknya.
+* Hanya dapat membuat satu laporan per hari.
+* Tidak dapat mengubah laporan yang sudah di-approve.
+* Dapat mengubah laporan yang masih pending atau rejected.
 
-## Don't
+### Mentor
 
-* Jangan membuat tabel user_active dan user_inactive
-* Jangan menyimpan password plaintext
-* Jangan menyimpan data akademik di tabel users
-* Jangan membuat Auth Guard berbeda jika tidak benar-benar diperlukan
+* Hanya dapat melihat laporan siswa bimbingannya.
+* Dapat melakukan approve atau reject laporan.
+* Dapat memberikan catatan review.
 
----
+### Admin
 
-# Conclusion
+* Mengelola data siswa.
+* Mengelola data mentor.
+* Mengelola akun pengguna.
+* Melakukan assignment mentor ke siswa.
 
-Arsitektur yang digunakan:
-
-* Single Authentication Table (`users`)
-* Separate Profile Tables (`students`, `teachers`)
-* Pre-registration Account Activation
-* Single Auth Guard
-* Role-based Authorization
-
-Pendekatan ini memberikan:
-
-* Maintainability tinggi
-* Struktur database ter-normalisasi
-* Mudah dikembangkan
-* Cocok untuk Laravel + MySQL
-* Cocok untuk fitur akademik jangka panjang
+```
+```
