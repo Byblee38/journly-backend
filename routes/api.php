@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\api\v1\AuthController;
 use App\Http\Controllers\api\v1\ReportController;
+use App\Http\Controllers\api\v1\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -18,14 +19,19 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::prefix('reports')->group(function () {
+    Route::prefteacherix('user')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
-            Route::get('/', [ReportController::class, 'index']);
-            Route::post('/create', [ReportController::class, 'store']);
-            Route::post('/{id}', [ReportController::class, 'show']);
-            Route::put('/{id}', [ReportController::class, 'update']);
-            Route::delete('/{id}', [ReportController::class, 'destroy']);
+        });
+        Route::get('/teachers', [UserController::class, 'getTeachers']);
+        Route::get('/students', [UserController::class, 'getStudents']);
+    });
+
+    Route::prefix('report')->group(function () {
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::get('/', [ReportController::class, 'index']); //Read
+            Route::post('/create', [ReportController::class, 'store']); //Create
+            Route::put('/update/{id}', [ReportController::class, 'update']); //update
+            Route::delete('/delete/{id}', [ReportController::class, 'destroy']); //Delete
         });
     });
 });
-
