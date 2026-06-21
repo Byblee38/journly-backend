@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User as userModels;
 use App\Models\Student as students;
 use App\Models\Teacher as teachers;
-use App\UserGender;
-use App\UserRole;
+use App\Enums\UserGender;
+use App\Enums\UserRole;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Enum;
 

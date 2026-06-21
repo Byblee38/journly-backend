@@ -28,7 +28,7 @@ class Report extends Model
         return $this->belongsTo(Teacher::class);
     }
 
-    public function reportActivity(): HasMany
+    public function reportActivities(): HasMany
     {
         return $this->hasMany(ReportActivity::class);
     }
