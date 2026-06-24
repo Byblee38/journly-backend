@@ -1,14 +1,14 @@
 <?php
 
-
+use App\Http\Controllers\api\v1\ActivateController;
 use App\Http\Controllers\api\v1\AuthController;
 use App\Http\Controllers\api\v1\ReportController;
 use App\Http\Controllers\api\v1\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    Route::get('/user-check', [AuthController::class, 'userCheck']);
-    Route::post('/users/activate', [AuthController::class, 'activateUser']);
+    Route::get('/user-check', [ActivateController::class, 'checkAccount']);
+    Route::post('/users/activate', [ActivateController::class, 'activateAccount']);
 
     Route::prefix('auth')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);

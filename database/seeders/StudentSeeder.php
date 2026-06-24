@@ -11,7 +11,7 @@ class StudentSeeder extends Seeder
     public function run(): void
     {
         Student::create([
-            'name' => 'Admin Kurikulum',
+            'name' => 'Bayu Kresna Mukti',
             'nisn' => '0081234561',
         ]);
     }
