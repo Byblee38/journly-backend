@@ -31,6 +31,16 @@ class User extends Authenticatable
         return $this->hasOne(Teacher::class);
     }
 
+    public function administrator()
+    {
+        return $this->hasOne(Administrator::class);
+    }
+
+    public function mentor()
+    {
+        return $this->hasOne(Mentor::class);
+    }
+
     protected function casts(): array
     {
         return [

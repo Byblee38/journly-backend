@@ -19,7 +19,7 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::prefteacherix('user')->group(function () {
+    Route::prefix('user')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
         });
         Route::get('/teachers', [UserController::class, 'getTeachers']);

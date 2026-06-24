@@ -12,6 +12,7 @@ class Report extends Model
     protected $fillable = [
         'student_id',
         'teacher_id',
+        'mentor_id',
         'report_date',
         'status',
         'mentor_note',

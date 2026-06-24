@@ -12,10 +12,12 @@ use App\Enums\UserGender;
 use App\Enums\UserRole;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Enum;
+use App\Services\UserAssigmentService;
 
 class AuthController extends Controller
 {
-    public function createUser(Request $request)
+    // Create User (Admin only)
+    public function createUser(Request $request, UserAssigmentService $userAssigmentService)
     {
         $validasi = Validator::make($request->all(), [
             'nisNip' => 'required|min:8|max:18|unique:teachers,nip|unique:students,nisn',
@@ -33,7 +35,10 @@ class AuthController extends Controller
                 ]
             ], 422);
         }
-        ;
+
+        $userAssigmentService($request->role);
+
+        
 
         $userRole = $request->role;
 

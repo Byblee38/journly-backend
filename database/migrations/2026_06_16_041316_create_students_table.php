@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->string('nisn')->unique();
             $table->string('name');
             $table->date('birth_date')->nullable();
-            $table->enum('gender', ['L', 'P']);
+            $table->enum('gender', ['L', 'P'])->nullable();
             $table->string('class')->nullable();
             $table->text('address')->nullable();
             $table->boolean('is_active')->default(false);

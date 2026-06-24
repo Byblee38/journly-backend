@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->string('nip')->unique();
             $table->string('name');
             $table->date('birth_date')->nullable();
-            $table->enum('gender', ['L', 'P']);
+            $table->enum('gender', ['L', 'P'])->nullable();
             $table->string('position')->nullable();
             $table->boolean('is_active')->default(false);
             $table->timestamps();
