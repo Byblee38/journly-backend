@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ActivateAccount;
-use App\Http\Requests\CheckAccount;
+use App\Http\Requests\ActivateAccountRequest;
+use App\Http\Requests\CheckAccountRequest;
 use App\Services\FindAccountService;
 
 class ActivateController extends Controller
 {
-    public function checkAccount(CheckAccount $request, FindAccountService $findAccount){
+    public function checkAccount(CheckAccountRequest $request, FindAccountService $findAccount){
         $validated = $request->validated();
         $identity_number = $validated['identity_number'];
 
@@ -27,7 +27,7 @@ class ActivateController extends Controller
         ], 200);
     }
 
-    public function activateAccount(ActivateAccount $request, FindAccountService $findAccount){
+    public function activateAccount(ActivateAccountRequest $request, FindAccountService $findAccount){
         $validated = $request->validated();
         $userFound = $findAccount->activateAccount($validated);
 

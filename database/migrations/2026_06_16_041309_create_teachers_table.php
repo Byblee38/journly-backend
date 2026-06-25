@@ -8,11 +8,11 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('teachers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')
+            $table->ulid('id')->primary();
+            $table->foreignUlid('user_id')
                 ->nullable()
                 ->unique()
-                ->constrained()
+                ->constrained('users')
                 ->cascadeOnDelete();
             $table->string('nip')->unique();
             $table->string('name');

@@ -8,16 +8,16 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('students', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')
+            $table->ulid('id')->primary();
+            $table->foreignUlid('user_id')
                 ->nullable()
                 ->unique()
-                ->constrained()
+                ->constrained('users')
                 ->cascadeOnDelete();
-            $table->foreignId('teacher_id')
+            $table->foreignUlid('teacher_id')
                 ->nullable()
                 ->constrained('teachers')
-                ->nullOnDelete();
+                ->onDelete('set null');
             $table->string('nisn')->unique();
             $table->string('name');
             $table->date('birth_date')->nullable();

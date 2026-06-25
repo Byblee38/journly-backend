@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('administrators', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')
+            $table->uuid('id')->primary();
+            $table->foreignUlid('user_id')
                 ->nullable()
                 ->unique()
                 ->constrained()

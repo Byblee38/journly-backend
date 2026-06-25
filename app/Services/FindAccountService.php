@@ -12,14 +12,12 @@ use Illuminate\Support\Facades\Hash;
 
 class FindAccountService
 {
+    public function __construct(protected UserAssigmentService $userAssigmentService)
+    {}
+
     public function findAccountByIdentity(string $identity_number)
     {
-        $roleMapping = [
-            'administrator' => ['model' => Administrator::class, 'identity_type' => 'nip'],
-            'teacher' => ['model' => Teacher::class, 'identity_type' => 'nip'],
-            'mentor' => ['model' => Mentor::class, 'identity_type' => 'identity_number'],
-            'student' => ['model' => Student::class, 'identity_type' => 'nisn'],
-        ];
+        $roleMapping = $this->userAssigmentService->targetModel();
 
         foreach ($roleMapping as $roleName => $config) {
             $userFound = $config['model']::where($config['identity_type'], $identity_number)->first();
@@ -43,22 +41,8 @@ class FindAccountService
 
     public function activateAccount(array $data)
     {
-        $roleMapping = [
-            'administrator' => ['model' => Administrator::class, 'identity_type' => 'nip'],
-            'teacher' => ['model' => Teacher::class, 'identity_type' => 'nip'],
-            'mentor' => ['model' => Mentor::class, 'identity_type' => 'identity_number'],
-            'student' => ['model' => Student::class, 'identity_type' => 'nisn'],
-        ];
-
-        if (!array_key_exists($data['role'], $roleMapping)) {
-            return [
-                'success'=> false,
-                'message'=> 'Role tidak sesuai'
-            ];
-        }
-
         $role = $data['role'];
-        $config = $roleMapping[$role];
+        $config = $this->userAssigmentService->getTargetModel($role);
         $identity_type = $config['identity_type'];
 
         $userFound = $config['model']::where($identity_type, $data['identity_number'])->first();

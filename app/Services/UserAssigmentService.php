@@ -1,33 +1,41 @@
-<?php 
+<?php
 
 namespace App\Services;
 
-
-use App\Models\Admin;
-use App\Models\Teacher;
+use App\Models\Administrator;
 use App\Models\Mentor;
 use App\Models\Student;
+use App\Models\Teacher;
 
-class UserAssigmentService {
-    public function getTargetModel(string $role) {
-        return match (strtolower($role)) {
-            'siswa', 'student' => [
-                'model'    => Student::class, 
-                'id_field' => 'nisn'
+class UserAssigmentService
+{
+    public function getTargetModel(string $role)
+    {
+        $models = $this->targetModel();
+        $cleanRole = strtolower($role);
+        
+        return $models[$cleanRole] ?? null;
+    }
+
+    public function targetModel()
+    {
+        return [
+            'student' => [
+                'model' => Student::class,
+                'identity_type' => 'nisn'
             ],
-            'guru', 'teacher'  => [
-                'model'    => Teacher::class, 
-                'id_field' => 'nip'
+            'teacher' => [
+                'model' => Teacher::class,
+                'identity_type' => 'nip'
             ],
-            'mentor'           => [
-                'model'    => Mentor::class,  
-                'id_field' => 'identity_number'
+            'mentor' => [
+                'model' => Mentor::class,
+                'identity_type' => 'identity_number'
             ],
-            'admin'            => [
-                'model'    => Admin::class,   
-                'id_field' => 'identity_number'
+            'administrator' => [
+                'model' => Administrator::class,
+                'identity_type' => 'nip'
             ],
-            default            => null
-        };
+        ];
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rules\Enum;
 
-class ActivateAccount extends FormRequest
+class ActivateAccountRequest extends FormRequest
 {
     public function authorize(): bool
     {
