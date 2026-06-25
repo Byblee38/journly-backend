@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('mentors', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')
+            $table->uuid('id')->primary();
+            $table->foreignUlid('user_id')
                 ->nullable()
                 ->unique()
                 ->constrained()
@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('identity_number')->unique();
             $table->string('name');
             $table->enum('gender', ['L', 'P'])->nullable;
+            $table->date('birth_date')->nullable();
             $table->string('company_name')->nullable();
             $table->string('position')->nullable();
             $table->boolean('is_active')->default(false);

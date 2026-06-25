@@ -4,7 +4,8 @@ namespace App\Enums;
 
 enum UserRole :string
 {
-    case ADMIN = 'admin';
+    case ADMIN = 'administrator';
     case MENTOR = 'mentor';
-    case SISWA = 'siswa';
+    case STUDENT = 'student';
+    case TEACHER = 'teacher';
 }
