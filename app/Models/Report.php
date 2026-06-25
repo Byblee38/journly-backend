@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Report extends Model
 {
+    use HasUlids;
     protected $table = 'report';
     protected $fillable = [
         'student_id',
         'teacher_id',
+        'mentor_id',
         'report_date',
         'status',
         'mentor_note',

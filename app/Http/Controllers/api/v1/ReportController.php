@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Report;
+use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -43,7 +44,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function store(Request $request) //post api for student
+    public function store(Request $request, ReportService $reportService) //post api for student
     {
         $validator = Validator::make($request->all(), [
             'report_date' => ['required', 'date_format:Y-m-d']
@@ -57,21 +58,20 @@ class ReportController extends Controller
         }
 
         $user = Auth::user();
+        $hasReport = $reportService->hasTodayReport($user, $request->report_date);
+        $hasTeacher = $reportService->hasTeacher($user);
 
-        $checkReport = $user->student->report()->where('report_date', $request->report_date)->first();
-        $checkTeacherId = $user->student->teacher_id;
-
-        if ($checkTeacherId == null) {
+        if (!$hasTeacher) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda belum memiliki mentor',
             ], 404);
         }
 
-        if ($checkReport) {
+        if ($hasReport) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda sudah memiliki report',
+                'message' => 'Anda sudah memiliki report hari ini',
             ], 409);
         }
 
@@ -90,7 +90,7 @@ class ReportController extends Controller
             'report' => $updateReport
         ]);
     }
-    
+
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
@@ -143,7 +143,7 @@ class ReportController extends Controller
                 'message' => 'Report tidak ditemukan'
             ], 404);
         }
-        
+
         $status = $report->status;
 
         if ($status == 'approved') {
