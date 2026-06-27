@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->ulid('id')->primary();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->enum('role', ['admin', 'mentor', 'student', 'teacher']);
+            $table->enum('role', ['administrator', 'mentor', 'student', 'teacher']);
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

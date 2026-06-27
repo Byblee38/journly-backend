@@ -2,10 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Administrator;
-use App\Models\Mentor;
-use App\Models\Student;
-use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -28,7 +24,7 @@ class FindAccountService
                     'message' => 'Data user ditemukan',
                     'data' => [
                         'name' => $userFound->name,
-                        'identity' => $userFound->$keyColumn,
+                        $config['identity_type'] => $userFound->$keyColumn,
                         'role' => $roleName,
                         'is_active' => $userFound->is_active
                     ]

@@ -3,11 +3,19 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CreateAccountRequest;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Services\UserAssigmentService;
+use App\Services\UserService;
 
 class UserController extends Controller
 {
+    public function __construct(
+        protected UserAssigmentService $userAssigmentService,
+        protected UserService $userService
+    ) {}
+
     public function getTeachers() {
         $teachers = Teacher::whereNotNull('user_id')->get();
         return response()->json([
@@ -33,5 +41,21 @@ class UserController extends Controller
             'message' => 'Data students berhasil diambil',
             'data' => $data,
         ]);
+    }
+
+    public function createUser(CreateAccountRequest $request) 
+    {
+        $validated = $request->validated();
+        $return = $this->userService->createUser($validated);
+
+        if($return['success'] == false){
+            return response()->json([
+                $return
+            ], 500);
+        }
+
+        return response()->json([
+            $return
+        ], 200);
     }
 }
