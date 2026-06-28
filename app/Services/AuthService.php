@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-class LoginService
+class AuthService
 {
     public function __construct(
         protected UserAssigmentService $userAssigmentService
@@ -42,5 +42,25 @@ class LoginService
                 ]
             ],
         ];
+    }
+
+    public function logout(User $user) {
+        $isLogout = $user->currentAccessToken()->delete();
+
+        if($isLogout) {
+            return [
+                'success'=> true,
+                'message'=> 'User berhasil logout'
+            ];
+        } else {
+            return [
+                'success'=> false,
+                'message' => 'Gagal logout'
+            ];
+        }
+    }
+
+    public function me() {
+        
     }
 }

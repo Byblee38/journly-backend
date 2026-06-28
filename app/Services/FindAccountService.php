@@ -2,18 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\Administrator;
-use App\Models\Mentor;
-use App\Models\Student;
-use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class FindAccountService
 {
-    public function __construct(protected UserAssigmentService $userAssigmentService)
-    {}
+    public function __construct(
+        protected UserAssigmentService $userAssigmentService
+    ) {}
 
     public function findAccountByIdentity(string $identity_number)
     {
@@ -28,7 +25,7 @@ class FindAccountService
                     'message' => 'Data user ditemukan',
                     'data' => [
                         'name' => $userFound->name,
-                        'identity' => $userFound->$keyColumn,
+                        $config['identity_type'] => $userFound->$keyColumn,
                         'role' => $roleName,
                         'is_active' => $userFound->is_active
                     ]
@@ -48,15 +45,15 @@ class FindAccountService
         $userFound = $config['model']::where($identity_type, $data['identity_number'])->first();
         if (!$userFound) {
             return [
-                'success'=> false,
-                'message'=> 'Data user tidak ditemukan'
+                'success' => false,
+                'message' => 'Data user tidak ditemukan'
             ];
         }
 
-        if ($userFound->is_active == 1 || $userFound->is_active == true){
+        if ($userFound->is_active == 1 || $userFound->is_active == true) {
             return [
-                'success'=> false,
-                'message'=> 'Akun user sudah diaktivasi'
+                'success' => false,
+                'message' => 'Akun user sudah diaktivasi'
             ];
         }
 
