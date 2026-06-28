@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\Hash;
 
 class FindAccountService
 {
-    public function __construct(protected UserAssigmentService $userAssigmentService)
-    {}
+    public function __construct(
+        protected UserAssigmentService $userAssigmentService
+    ) {}
 
     public function findAccountByIdentity(string $identity_number)
     {
@@ -44,15 +45,15 @@ class FindAccountService
         $userFound = $config['model']::where($identity_type, $data['identity_number'])->first();
         if (!$userFound) {
             return [
-                'success'=> false,
-                'message'=> 'Data user tidak ditemukan'
+                'success' => false,
+                'message' => 'Data user tidak ditemukan'
             ];
         }
 
-        if ($userFound->is_active == 1 || $userFound->is_active == true){
+        if ($userFound->is_active == 1 || $userFound->is_active == true) {
             return [
-                'success'=> false,
-                'message'=> 'Akun user sudah diaktivasi'
+                'success' => false,
+                'message' => 'Akun user sudah diaktivasi'
             ];
         }
 

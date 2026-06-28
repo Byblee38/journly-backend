@@ -9,6 +9,7 @@ use App\Models\Teacher;
 use App\Services\UserAssigmentService;
 use App\Services\UserService;
 
+
 class UserController extends Controller
 {
     public function __construct(
@@ -56,6 +57,20 @@ class UserController extends Controller
 
         return response()->json([
             $return
+        ], 200);
+    }
+
+    public function createMentorToken() {
+        $token = $this->userService->createMentorToken();
+
+        if($token['success'] == false){
+            return response()->json([
+                $token
+            ], 500);
+        }
+
+        return response()->json([
+            $token
         ], 200);
     }
 }

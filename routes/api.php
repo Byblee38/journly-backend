@@ -7,20 +7,23 @@ use App\Http\Controllers\api\v1\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    Route::get('/user-check', [ActivateController::class, 'checkAccount'])->middleware('role:student');
+    Route::get('/user-check', [ActivateController::class, 'checkAccount']);
     Route::post('/users/activate', [ActivateController::class, 'activateAccount']);
 
     Route::prefix('auth')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('/logout', [AuthController::class, 'logout']);
-            Route::get('/me', [AuthController::class, 'me']);
         });
     });
 
     Route::prefix('user')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
-            Route::post('/createUser', [UserController::class, 'createUser'])->middleware('role:administrator'); 
+            Route::middleware('role:administrator')->group(function () {
+                Route::get('/create-mentor-token', [UserController::class, 'createMentorToken']);    
+                Route::post('/create-user', [UserController::class, 'createUser']);
+            });
+            Route::get('/me', [AuthController::class, 'me']);
             Route::get('/teachers', [UserController::class, 'getTeachers']);
             Route::get('/students', [UserController::class, 'getStudents']);
         });
@@ -28,10 +31,10 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('report')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
-            Route::get('/', [ReportController::class, 'index']); //Read
-            Route::post('/create', [ReportController::class, 'store']); //Create
-            Route::put('/update/{id}', [ReportController::class, 'update']); //update
-            Route::delete('/delete/{id}', [ReportController::class, 'destroy']); //Delete
+            Route::get('/', [ReportController::class, 'index']);
+            Route::post('/create', [ReportController::class, 'store']);
+            Route::put('/update/{id}', [ReportController::class, 'update']);
+            Route::delete('/delete/{id}', [ReportController::class, 'destroy']);
         });
     });
 });
