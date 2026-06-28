@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateAccountRequest;
+use App\Http\Requests\CreateMentorAccountRequest;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Services\UserAssigmentService;
@@ -72,5 +73,20 @@ class UserController extends Controller
         return response()->json([
             $token
         ], 200);
+    }
+
+    public function createMentorAccount(CreateMentorAccountRequest $request){
+        $validated = $request->validated();
+        $return = $this->userService->createMentorAccount($validated);
+
+        if($return['success'] == false){
+            return response()->json([
+                $return
+            ], 500);
+        }
+
+        return response()->json([
+            $return
+        ], 201);
     }
 }

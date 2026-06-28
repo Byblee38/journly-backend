@@ -19,7 +19,6 @@ class ReportService
 
     public function hasApprove(User $user){
         $approve = $user->student->report->status;
-        
         return $approve !== 'pending' ? true : false;
     }
 }

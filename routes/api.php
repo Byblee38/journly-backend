@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     Route::get('/user-check', [ActivateController::class, 'checkAccount']);
     Route::post('/users/activate', [ActivateController::class, 'activateAccount']);
+    Route::post('user/create-mentor-account', [UserController::class,'createMentorAccount']);
+
 
     Route::prefix('auth')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
